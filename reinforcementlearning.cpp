@@ -816,27 +816,6 @@ bool reinforcementlearning::a_ransac_grfl(const matchingType mt, const ransacMod
     }
     for (int i = 0; i < numPts; i++) prop[i] = 0.0;
 
-    // ===== 適応型パラメータ設定 =====
-    InlierRateEstimator estimator;
-    // dstd.oImageはどこかから参照する必要がある。ここでは仮に引数で渡すとする。
-    // 実際には、この関数を呼び出すpositionestimation_normalから渡すのが良い。
-    // double predicted_ratio = estimator.predict(dstd.oImage); 
-    // ※ここでは仮にdstdを直接参照できないので、ダミー値で計算を進めます。
-    // 実際にはdstd.oImageを渡してください。
-    double predicted_ratio = estimator.predict(cv::Mat(100, 100, CV_8U, cv::Scalar(128))); // ダミー画像で予測
-
-    // 1. maxIterationを適応的に設定
-    size_t adaptive_iterNum = computeLoopNumbers(numPts, numPts * predicted_ratio, sampleSize);
-    size_t execution_iterations = std::min((size_t)maxIteration, adaptive_iterNum);
-
-    // 2. maxDistance (tsd) を適応的に設定
-    const double base_maxDistance = th;
-    const double scale_factor = 1.5; // 予測が悪いほど、しきい値をどのくらい緩和するかの係数
-    double adaptive_maxDistance = base_maxDistance * (1.0 + (1.0 - predicted_ratio) * scale_factor);
-    tsd = adaptive_maxDistance;
-
-    printf("Adaptive RANSAC: Predicted Inlier Ratio=%.2f, Iterations=%zu, Threshold=%.2f\n",
-        predicted_ratio, execution_iterations, tsd);
 
     for (it = 1; it <= maxIteration; it++) {
         indices = softmax_y(numPts, prop, sampleSize);
